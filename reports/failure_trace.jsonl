@@ -1,0 +1,12 @@
+{"ts": "2026-10-23T07:20:00Z", "sandbox_name": "sbx-failstep07", "step": 1, "state": "created", "event": "guest_created"}
+{"ts": "2026-10-23T07:20:01Z", "sandbox_name": "sbx-failstep07", "step": 2, "state": "ready", "event": "boot_probe_passed"}
+{"ts": "2026-10-23T07:20:02Z", "sandbox_name": "sbx-failstep07", "step": 3, "state": "running", "event": "network_policy_applied"}
+{"ts": "2026-10-23T07:20:03Z", "sandbox_name": "sbx-failstep07", "step": 4, "state": "running", "event": "canary_planted"}
+{"ts": "2026-10-23T07:20:04Z", "sandbox_name": "sbx-failstep07", "step": 5, "state": "running", "event": "repo_cloned"}
+{"ts": "2026-10-23T07:20:05Z", "sandbox_name": "sbx-failstep07", "step": 6, "state": "running", "event": "snapshot_created", "snapshot_id": "snap-06"}
+{"ts": "2026-10-23T07:20:07Z", "sandbox_name": "sbx-failstep07", "step": 7, "state": "mid_task_failure", "event": "step_failed", "error": "broken_wheel_install"}
+{"ts": "2026-10-23T07:20:08Z", "sandbox_name": "sbx-failstep07", "step": 7, "state": "rolled_back", "event": "policy_applied", "policy": "rollback", "snapshot_id": "snap-06"}
+{"ts": "2026-10-23T07:20:10Z", "sandbox_name": "sbx-failstep07", "step": 8, "state": "running", "event": "alternate_upgrade_applied"}
+{"ts": "2026-10-23T07:20:12Z", "sandbox_name": "sbx-failstep07", "step": 9, "state": "running", "event": "verification_tests_passed"}
+{"ts": "2026-10-23T07:20:14Z", "sandbox_name": "sbx-failstep07", "step": 10, "state": "succeeded", "event": "bisection_report_emitted"}
+{"ts": "2026-10-23T07:20:15Z", "sandbox_name": "sbx-failstep07", "step": 10, "state": "deleted", "event": "cleanup_finished"}

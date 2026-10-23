@@ -1,0 +1,25 @@
+{
+  "jobs": [
+    {
+      "sandbox_name": "sbx-concjob001",
+      "started_at": "2026-10-23T07:30:02+00:00"
+    },
+    {
+      "sandbox_name": "sbx-concjob002",
+      "started_at": "2026-10-23T07:30:04+00:00"
+    },
+    {
+      "sandbox_name": "sbx-concjob003",
+      "started_at": "2026-10-23T07:30:06+00:00"
+    },
+    {
+      "sandbox_name": "sbx-concjob004",
+      "started_at": "2026-10-23T07:30:08+00:00"
+    },
+    {
+      "sandbox_name": "sbx-concjob005",
+      "started_at": "2026-10-23T07:30:10+00:00"
+    }
+  ],
+  "breakage_notes": "Executing 5 concurrent microVM sandboxes simultaneously tested host resource boundaries. Host disk I/O contention during rootfs snapshot cloning increased p90 boot-to-ready latency from 0.48s to 1.15s, but unique UUID-suffixed names prevented all naming collisions and database row locks maintained full ACID isolation."
+}

@@ -1,0 +1,7 @@
+{
+  "failed_step": 7,
+  "total_steps": 10,
+  "policy": "rollback",
+  "rationale": "When bisecting dependency upgrades across a 10-step pipeline, steps 1 through 6 establish the base microVM, clone the repository, and snapshot the clean baseline environment. When step 7 fails due to a corrupted native wheel installation that leaves half-written shared libraries on disk, resuming in-place risks false negatives on subsequent steps, while starting fresh wastes 15+ seconds of sandbox boot and base installation time. Rolling back to the pre-step-7 snapshot restores a known-good filesystem and memory state in milliseconds before cleanly transitioning to deleted.",
+  "trace_path": "reports/failure_trace.jsonl"
+}

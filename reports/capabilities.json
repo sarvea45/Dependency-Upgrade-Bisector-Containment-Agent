@@ -1,0 +1,19 @@
+{
+  "capabilities": [
+    {
+      "id": "snapshots",
+      "why": "Checkpointing before risky dependency upgrades allows instant rollback on broken test suites without reinstalling base packages.",
+      "evidence_path": "reports/evidence/snapshot_bisect.log"
+    },
+    {
+      "id": "network_policy",
+      "why": "Disabling outbound internet access after dependency installation prevents prompt-injected tests or malicious packages from exfiltrating secrets.",
+      "evidence_path": "reports/evidence/containment.log"
+    },
+    {
+      "id": "safety_hooks",
+      "why": "Pre-execution Python callbacks inspect shell commands before reaching the microVM guest to block destructive operations and outbound curl exfiltration.",
+      "evidence_path": "app/sandbox_runner.py"
+    }
+  ]
+}

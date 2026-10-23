@@ -1,0 +1,6 @@
+{
+  "who": "Backend and DevOps engineers maintaining Python microservices who face broken builds during bulk dependency upgrades.",
+  "agent_work": "Clones target repositories inside an isolated Celesto microVM, upgrades packages, runs pytest suites, and bisects failures using VM snapshots.",
+  "proof_output": "A structured JSON bisection report identifying the exact breaking package version alongside an audited command log.",
+  "idea_source": "idea_bank"
+}

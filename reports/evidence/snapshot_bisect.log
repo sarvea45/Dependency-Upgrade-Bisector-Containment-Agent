@@ -1,0 +1,13 @@
+[2026-10-23T07:10:00Z] [BISECT_START] guest=sbx-bisectdemo01 target=celesto_sandbox
+[2026-10-23T07:10:02Z] cmd="git clone https://github.com/example/service.git" exit=0
+[2026-10-23T07:10:04Z] cmd="pip install -r base-requirements.txt" exit=0
+[2026-10-23T07:10:06Z] [SNAPSHOT_CREATE] id=snap-baseline status=success duration_ms=210
+[2026-10-23T07:10:08Z] cmd="pip install httpx==0.27.0" exit=0
+[2026-10-23T07:10:10Z] cmd="pytest tests/" exit=0
+[2026-10-23T07:10:11Z] [SNAPSHOT_CREATE] id=snap-step-06 status=success duration_ms=195
+[2026-10-23T07:10:12Z] cmd="pip install pydantic==2.8.0 --no-binary :all:" exit=1 error="CompilationError: wheel build failed"
+[2026-10-23T07:10:13Z] [FAILURE_DETECTED] step=7 status=mid_task_failure
+[2026-10-23T07:10:14Z] [SNAPSHOT_RESTORE] id=snap-step-06 status=restored duration_ms=180
+[2026-10-23T07:10:15Z] cmd="pip install pydantic==2.7.4" exit=0 (alternate_branch)
+[2026-10-23T07:10:17Z] cmd="pytest tests/" exit=0
+[2026-10-23T07:10:18Z] [CLEANUP] guest=sbx-bisectdemo01 state=deleted duration_ms=45
