@@ -1,12 +1,16 @@
 """Comprehensive Test Suite validating all 12 Hackathon Core Requirements."""
 import os
+import sys
 import re
 import json
 import math
 import pytest
-from fastapi.testclient import TestClient
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+from fastapi.testclient import TestClient
 
 
 # ==============================================================================
