@@ -228,10 +228,3 @@ All 12 Core Requirements will validate with `12 passed in <2s`.
 * **Video Walkthrough**: Available in [`demo/walkthrough.mp4`](demo/walkthrough.mp4) (or linked [here](https://celesto.ai)).
 * Demonstrates live guest execution, snapshot bisection rollback, prompt-injection blocking, and REST API contract checks.
 
----
-
-## Celesto Founder 1:1 Interview Defense
-
-* **Why Celesto and not Docker or E2B?** Docker containers share the host Linux kernel (`/proc`, syscall table), making them vulnerable to kernel privilege escalation and unable to take sub-second full-memory CPU+RAM snapshots. E2B is proprietary, closed-box, and cloud-only. Celesto provides open-source microVM hardware isolation (Firecracker/QEMU) with identical local and cloud APIs, Windows/macOS support, and snapshot branching.
-* **What would break at 1,000 concurrent users?** Host TAP interface / vsock exhaustion and NVMe I/O saturation during simultaneous snapshot writes. Mitigated by dynamic microVM worker pools with aggressive TTLs, copy-on-write thin provisioning, and PgBouncer connection pooling.
-* **Honest Product Feedback**: During local development under heavy CPU contention, vsock connection handshakes between host and guest occasionally timed out before emitting granular boot error codes. Adding an explicit `BootState` event stream (`kernel_loaded` $\rightarrow$ `guest_agent_listening`) would improve local developer observability.
