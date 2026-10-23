@@ -400,3 +400,68 @@ def test_req_12_readme_required_phrases():
 
     for phrase in required_phrases:
         assert phrase in readme_text, f"Required phrase '{phrase}' must be present in README.md"
+
+
+# ==============================================================================
+# Requirement 13: Hybrid Model Router (Groq for Low-Latency, Gemini for Step 7)
+# ==============================================================================
+def test_req_13_hybrid_model_router():
+    from app.llm_router import HybridModelRouter
+    from code.agent.runner import AgentWorkflowRunner
+
+    # 1. Test Routing Condition when both keys are present
+    router = HybridModelRouter(
+        default_base_url="https://api.groq.com/openai/v1",
+        default_api_key="gsk_live_groq_key_test",
+        default_model="llama-3.3-70b-versatile",
+        gemini_api_key="AIzaSy_live_gemini_key_test",
+        gemini_model="gemini-2.5-pro"
+    )
+
+    # Standard tool call (Step 3) -> Routed to Groq
+    std_decision = router.execute_react_step(step=3, prompt="Run bash command in sandbox", is_mid_task_failure=False)
+    assert std_decision["provider"] == "groq", "Standard steps must route to Groq client"
+    assert std_decision["model"] == "llama-3.3-70b-versatile"
+    assert std_decision["routing_reason"] == "groq_low_latency_tool_execution"
+
+    # Step 7 MidTaskFailure -> Routed to Gemini for reasoning & large context
+    fail_decision = router.execute_react_step(
+        step=7,
+        prompt="Analyze 420-line compilation error trace",
+        is_mid_task_failure=True,
+        stack_trace="Traceback (most recent call last): ..."
+    )
+    assert fail_decision["provider"] == "gemini", "Step 7 MidTaskFailure must route to Gemini client"
+    assert fail_decision["model"] == "gemini-2.5-pro"
+    assert fail_decision["routing_reason"] == "gemini_large_context_reasoning_for_mid_task_failure"
+
+    # 2. Test Safe Fallback if Gemini key is missing
+    fallback_router_no_gemini = HybridModelRouter(
+        default_api_key="gsk_live_groq_key_test",
+        gemini_api_key=""
+    )
+    routed_client = fallback_router_no_gemini.route(step=7, is_mid_task_failure=True)
+    assert routed_client.provider == "groq", "Must safely fallback to Groq when Gemini key is missing"
+
+    # 3. Test Safe Fallback if Groq key is missing
+    fallback_router_no_groq = HybridModelRouter(
+        default_api_key="",
+        gemini_api_key="AIzaSy_live_gemini_key_test"
+    )
+    routed_client_std = fallback_router_no_groq.route(step=4, is_mid_task_failure=False)
+    assert routed_client_std.provider == "gemini", "Must safely fallback to Gemini when Groq key is missing"
+
+    # 4. Test AgentWorkflowRunner execution with Hybrid Router
+    agent_runner = AgentWorkflowRunner("sbx-hybridtest01", router=router)
+    result = agent_runner.run_pipeline()
+    assert result["final_state"] == "deleted"
+    
+    # Verify Step 7 in trace used Gemini
+    step7_trace = next(ev for ev in result["trace"] if ev.get("step") == 7 and ev.get("event") == "step_failed")
+    assert step7_trace.get("llm_provider") == "gemini"
+    assert step7_trace.get("routing_reason") == "gemini_large_context_reasoning_for_mid_task_failure"
+
+    # Verify standard step used Groq
+    step4_trace = next(ev for ev in result["trace"] if ev.get("step") == 4)
+    assert step4_trace.get("llm_provider") == "groq"
+
