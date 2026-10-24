@@ -15,17 +15,31 @@ FAILURE_TRACE_PATH = os.path.join(REPO_ROOT, "reports", "failure_trace.jsonl")
 class AgentWorkflowRunner:
     """Executes the 10-step dependency upgrade bisection pipeline inside Celesto microVMs
     utilizing a Hybrid Model Router (Groq for fast tool execution, Gemini for Step 7 failure reasoning).
+    Supports dynamic repositories, target packages, and custom error stack traces.
     """
 
-    def __init__(self, sandbox_name: str, router: Optional[HybridModelRouter] = None, verbose: bool = False):
+    def __init__(
+        self,
+        sandbox_name: str,
+        router: Optional[HybridModelRouter] = None,
+        verbose: bool = False,
+        repo_url: str = "https://github.com/example/microservice.git",
+        target_package: str = "pydantic==2.8.0",
+        fallback_package: str = "pydantic==2.7.4",
+        custom_stack_trace: Optional[str] = None,
+    ):
         self.sandbox_name = sandbox_name
         self.state = "created"
         self.current_step = 0
         self.router = router or HybridModelRouter()
         self.verbose = verbose
+        self.repo_url = repo_url
+        self.target_package = target_package
+        self.fallback_package = fallback_package
+        self.custom_stack_trace = custom_stack_trace
 
     def run_pipeline(self) -> Dict[str, Any]:
-        """Execute full 10-step deterministic sequence."""
+        """Execute full 10-step sequence with dynamic package and stack trace reasoning."""
         trace = []
 
         def log_event(step: int, state: str, event: str, **kwargs):
@@ -78,10 +92,10 @@ class AgentWorkflowRunner:
             self.current_step = 5
             step5_decision = self.router.execute_react_step(
                 step=5,
-                prompt="Clone target Git repository into sandbox workspace.",
+                prompt=f"Clone target Git repository into sandbox workspace ({self.repo_url}).",
                 is_mid_task_failure=False
             )
-            vm.run("git clone https://github.com/example/microservice.git")
+            vm.run(f"git clone {self.repo_url}")
             log_event(5, "running", "repo_cloned", llm_provider=step5_decision["provider"], llm_model=step5_decision["model"])
 
             # Step 6: Baseline Snapshot snap-06 (Routed via Groq)
@@ -110,23 +124,24 @@ E   ImportError: /usr/local/lib/python3.11/site-packages/pydantic_core/_pydantic
 =========================== short test summary info ============================
 FAILED tests/test_core.py - ImportError: undefined symbol: PyObject_VectorcallMethod
             """
+            stack_trace_to_analyze = self.custom_stack_trace or simulated_stack_trace
             try:
                 # Trigger designed Step 7 failure
-                raise RuntimeError("Native extension compilation timeout on wheel installation: pydantic_core ABI mismatch")
+                raise RuntimeError(f"Native extension compilation timeout on wheel installation: {self.target_package} ABI mismatch")
             except RuntimeError as exc:
                 self.state = "mid_task_failure"
                 if self.verbose:
                     print("\n" + "!" * 75)
-                    print("[Step 07/10] [ALERT] TRIGGERED MID-TASK FAILURE: pydantic_core native C-extension ABI error")
-                    print("[Step 07/10] [ROUTER] Routing 420-line Pytest Stack Trace to Gemini 3.8 Flash for Deep Reasoning...")
+                    print(f"[Step 07/10] [ALERT] TRIGGERED MID-TASK FAILURE: {self.target_package} native error")
+                    print("[Step 07/10] [ROUTER] Routing Pytest Stack Trace to Gemini 3.8 Flash for Deep Reasoning...")
                     print("!" * 75)
                 
                 # Route large stack trace to Gemini Reasoning Client
                 gemini_reasoning_decision = self.router.execute_react_step(
                     step=7,
-                    prompt="Evaluate 420-line compilation stack trace. Determine root cause, rollback target, and safe alternate branch.",
+                    prompt="Evaluate compilation stack trace. Determine root cause, rollback target, and safe alternate branch.",
                     is_mid_task_failure=True,
-                    stack_trace=simulated_stack_trace
+                    stack_trace=stack_trace_to_analyze
                 )
 
                 if self.verbose:
@@ -157,10 +172,10 @@ FAILED tests/test_core.py - ImportError: undefined symbol: PyObject_VectorcallMe
             self.state = "running"
             step8_decision = self.router.execute_react_step(
                 step=8,
-                prompt="Apply safe alternate binary wheel pin: pip install pydantic==2.7.4.",
+                prompt=f"Apply safe alternate binary wheel pin: pip install {self.fallback_package}.",
                 is_mid_task_failure=False
             )
-            vm.run("pip install pydantic==2.7.4")
+            vm.run(f"pip install {self.fallback_package}")
             log_event(8, "running", "alternate_upgrade_applied", llm_provider=step8_decision["provider"], llm_model=step8_decision["model"])
 
             # Step 9: Verification (Routed via Groq)
