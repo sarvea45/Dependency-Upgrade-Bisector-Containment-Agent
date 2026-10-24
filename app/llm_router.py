@@ -120,7 +120,7 @@ class HybridModelRouter:
                     # 1. Native Gemini Provider Execution
                     if client.provider == "gemini":
                         gemini_models_to_try = [client.model]
-                        for fallback_m in ["gemini-3.8-flash", "gemini-2.5-pro", "gemini-2.0-flash"]:
+                        for fallback_m in ["gemini-3.8-flash", "gemini-flash-lite-latest", "gemini-flash-latest"]:
                             if fallback_m not in gemini_models_to_try:
                                 gemini_models_to_try.append(fallback_m)
 
@@ -156,7 +156,7 @@ class HybridModelRouter:
                                     return routing_decision
                             else:
                                 last_err = f"HTTP {resp.status_code}: {resp.text}"
-                                if resp.status_code == 404:
+                                if resp.status_code in (404, 429):
                                     continue
                                 break
 
