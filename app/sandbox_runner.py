@@ -4,10 +4,25 @@ import re
 import json
 import signal
 import sys
+import uuid
+import time
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any, Callable, List
+from typing import Optional, Dict, Any
+
+import httpx
 
 COMMANDS_LOG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "commands.jsonl")
+
+try:
+    from dotenv import load_dotenv
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    local_env = os.path.join(repo_root, ".env.local")
+    if os.path.exists(local_env):
+        load_dotenv(local_env)
+    else:
+        load_dotenv()
+except ImportError:
+    pass
 
 
 class CommandBlockedError(Exception):
@@ -65,6 +80,9 @@ class CelestoSandbox:
         self.filesystem: Dict[str, str] = {}
         self.is_running = False
         self.deleted = False
+        self.cloud_computer_id: Optional[str] = None
+        self.api_key = os.getenv("CELESTO_API_KEY", "")
+        self.base_url = "https://api.celesto.ai"
 
         # Register termination signal handlers for graceful lifecycle cleanup
         try:
@@ -72,6 +90,9 @@ class CelestoSandbox:
             signal.signal(signal.SIGTERM, self._handle_interrupt)
         except (ValueError, AttributeError):
             pass
+
+    def _is_cloud_active(self) -> bool:
+        return self.provider == "cloud" and bool(self.api_key and self.api_key.startswith("cel_") and self.api_key != "replace-me")
 
     def _handle_interrupt(self, signum, frame):
         """Emergency interrupt handler ensuring machine is never left orphaned."""
@@ -89,6 +110,36 @@ class CelestoSandbox:
 
     def start(self):
         """Boot probe: starts microVM guest and verifies ready state."""
+        if self._is_cloud_active():
+            try:
+                headers = {
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                    "X-Celesto-Client": "sdk",
+                    "Idempotency-Key": uuid.uuid4().hex,
+                }
+                payload = {
+                    "template_id": "coding-agent",
+                    "image": "ubuntu-desktop-24.04",
+                }
+                res = httpx.post(f"{self.base_url}/v1/computers", json=payload, headers=headers, timeout=30.0)
+                if res.status_code in (200, 201):
+                    self.cloud_computer_id = res.json().get("id")
+                    # Poll until running
+                    deadline = time.time() + 30.0
+                    while time.time() < deadline:
+                        chk = httpx.get(
+                            f"{self.base_url}/v1/computers/{self.cloud_computer_id}",
+                            headers={"Authorization": f"Bearer {self.api_key}", "X-Celesto-Client": "sdk"},
+                            timeout=10.0
+                        )
+                        if chk.status_code == 200 and chk.json().get("status") == "running":
+                            break
+                        time.sleep(1.0)
+            except Exception as e:
+                print(f"[Celesto Cloud Warning] Could not boot remote VM ({e}). Falling back to local isolated sandbox.")
+                self.cloud_computer_id = None
+
         self.is_running = True
         self.deleted = False
         return self
@@ -106,6 +157,32 @@ class CelestoSandbox:
 
         # Command is approved
         audit_command(self.sandbox_name, command, "allow")
+
+        if self._is_cloud_active() and self.cloud_computer_id:
+            try:
+                headers = {
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                    "X-Celesto-Client": "sdk",
+                }
+                res = httpx.post(
+                    f"{self.base_url}/v1/computers/{self.cloud_computer_id}/exec",
+                    headers=headers,
+                    json={"command": command, "timeout": 30},
+                    timeout=35.0
+                )
+                if res.status_code == 200:
+                    out = res.json()
+                    return {
+                        "ok": out.get("exit_code") == 0,
+                        "exit_code": out.get("exit_code", 0),
+                        "stdout": out.get("stdout", ""),
+                        "stderr": out.get("stderr", ""),
+                        "command_id": out.get("command_id"),
+                        "execution_target": "celesto_sandbox",
+                    }
+            except Exception as e:
+                pass
 
         # Emulate command result inside guest
         return {
@@ -140,6 +217,14 @@ class CelestoSandbox:
 
     def delete(self):
         """Throw away guest microVM resources (Lifecycle Hygiene Contract)."""
+        if self._is_cloud_active() and self.cloud_computer_id:
+            try:
+                headers = {"Authorization": f"Bearer {self.api_key}", "X-Celesto-Client": "sdk"}
+                httpx.delete(f"{self.base_url}/v1/computers/{self.cloud_computer_id}", headers=headers, timeout=15.0)
+            except Exception:
+                pass
+            self.cloud_computer_id = None
+
         self.is_running = False
         self.deleted = True
         self.snapshots.clear()
