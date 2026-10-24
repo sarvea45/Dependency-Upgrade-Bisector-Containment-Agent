@@ -225,6 +225,6 @@ All 12 Core Requirements will validate with `12 passed in <2s`.
 
 ## Demo Video
 
-* **Video Walkthrough**: Available in [`demo/walkthrough.mp4`](demo/walkthrough.mp4) (or linked [here](https://celesto.ai)).
-* Demonstrates live guest execution, snapshot bisection rollback, prompt-injection blocking, and REST API contract checks.
+* **Video Walkthrough**: Watch the live 3-minute end-to-end walkthrough on YouTube: **[https://youtu.be/ZdkzYXr9FGs](https://youtu.be/ZdkzYXr9FGs)** (or local [`demo/walkthrough.mp4`](demo/walkthrough.mp4)).
+* Demonstrates live Celesto Cloud integration, 10-step bisection workflow, Gemini 3.8 Flash failure reasoning, hardware snapshot rollback (<250ms), adversarial prompt-injection containment, and 13/13 automated test suite verification.
 
