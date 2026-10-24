@@ -5,7 +5,10 @@ from typing import Dict, Any, Optional
 
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    if os.path.exists(".env.local"):
+        load_dotenv(".env.local")
+    else:
+        load_dotenv()
 except ImportError:
     pass
 
@@ -46,7 +49,7 @@ class HybridModelRouter:
         self.groq_client = LLMClientConfig(
             provider="groq",
             base_url=default_base_url or os.getenv("LLM_BASE_URL", "https://api.groq.com/openai/v1"),
-            api_key=default_api_key or os.getenv("LLM_API_KEY", "replace-me"),
+            api_key=default_api_key if default_api_key is not None else os.getenv("LLM_API_KEY", "replace-me"),
             model=default_model or os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
         )
 
@@ -56,7 +59,7 @@ class HybridModelRouter:
         self.gemini_client = LLMClientConfig(
             provider="gemini",
             base_url=gemini_base_url or os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai"),
-            api_key=gemini_api_key or os.getenv("GEMINI_API_KEY", "replace-me"),
+            api_key=gemini_api_key if gemini_api_key is not None else os.getenv("GEMINI_API_KEY", "replace-me"),
             model=cleaned_gemini_model
         )
 
@@ -111,7 +114,7 @@ class HybridModelRouter:
                 import httpx
                 start_time = time.time()
 
-                with httpx.Client(timeout=30.0) as http_client:
+                with httpx.Client(timeout=90.0) as http_client:
                     last_err = None
 
                     # 1. Native Gemini Provider Execution

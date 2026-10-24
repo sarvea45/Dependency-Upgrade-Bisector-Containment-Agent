@@ -16,7 +16,12 @@ if REPO_ROOT not in sys.path:
 
 try:
     from dotenv import load_dotenv
-    load_dotenv(os.path.join(REPO_ROOT, ".env"))
+    local_env = os.path.join(REPO_ROOT, ".env.local")
+    root_env = os.path.join(REPO_ROOT, ".env")
+    if os.path.exists(local_env):
+        load_dotenv(local_env)
+    elif os.path.exists(root_env):
+        load_dotenv(root_env)
 except ImportError:
     pass
 

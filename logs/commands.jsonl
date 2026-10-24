@@ -101,3 +101,17 @@
 {"ts": "2026-10-24T03:06:26.701696+00:00", "sandbox_name": "sbx-liveverify01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
 {"ts": "2026-10-24T03:06:58.925637+00:00", "sandbox_name": "sbx-liveverify01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
 {"ts": "2026-10-24T03:07:00.214950+00:00", "sandbox_name": "sbx-liveverify01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:10:08.002310+00:00", "sandbox_name": "sbx-liveverify01", "command": "echo 'SECRET_CANARY_TOKEN_9981' > /run/secrets/canary.txt", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:10:09.740834+00:00", "sandbox_name": "sbx-liveverify01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:11:32.244595+00:00", "sandbox_name": "sbx-hybridtest01", "command": "echo 'SECRET_CANARY_TOKEN_9981' > /run/secrets/canary.txt", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:11:32.745648+00:00", "sandbox_name": "sbx-hybridtest01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:11:35.822536+00:00", "sandbox_name": "sbx-hybridtest01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:11:36.315572+00:00", "sandbox_name": "sbx-hybridtest01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:12:53.833633+00:00", "sandbox_name": "sbx-liveverify01", "command": "echo 'SECRET_CANARY_TOKEN_9981' > /run/secrets/canary.txt", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:12:54.917874+00:00", "sandbox_name": "sbx-liveverify01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:13:58.353315+00:00", "sandbox_name": "sbx-liveverify01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:13:59.482680+00:00", "sandbox_name": "sbx-liveverify01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:18:50.489860+00:00", "sandbox_name": "sbx-hybridtest01", "command": "echo 'SECRET_CANARY_TOKEN_9981' > /run/secrets/canary.txt", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:18:50.997073+00:00", "sandbox_name": "sbx-hybridtest01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:18:52.464149+00:00", "sandbox_name": "sbx-hybridtest01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:18:52.925711+00:00", "sandbox_name": "sbx-hybridtest01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
