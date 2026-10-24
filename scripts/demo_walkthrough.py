@@ -64,12 +64,26 @@ def main():
         print(f"[+] Celesto Cloud Key Loaded: {cel_key[:12]}*** (Authenticated)")
         try:
             headers = {"Authorization": f"Bearer {cel_key}", "X-Celesto-Client": "sdk"}
+            
+            # Dispatch a live agent run to Celesto Cloud
+            agent_id = "agt_69c07d8c307e40a4b800f33ac43c0177"
+            run_payload = {
+                "input": "Execute 10-step bisection verification in Celesto sandbox",
+                "end_user_id": "sarvea45"
+            }
+            print(f"[*] Dispatching live run to Celesto Cloud Agent ({agent_id})...")
+            r_run_post = httpx.post(f"https://api.celesto.ai/v1/agents/{agent_id}/runs", headers=headers, json=run_payload, timeout=30.0)
+            if r_run_post.status_code in (200, 201):
+                rdata = r_run_post.json()
+                print(f"[+] LIVE RUN RECORDED ON CELESTO CLOUD: {rdata.get('run_id')} (Status: {rdata.get('status')})")
+            
+            # Query active runs list
             r_cruns = httpx.get("https://api.celesto.ai/v1/runs", headers=headers, timeout=10.0)
             if r_cruns.status_code == 200:
                 cloud_runs = r_cruns.json().get("data", [])
-                print(f"[+] Celesto Cloud Runs Dashboard: {len(cloud_runs)} run(s) found on app.celesto.ai")
-                for cr in cloud_runs[:2]:
-                    print(f"    - Run ID: {cr.get('run_id')} | Status: {cr.get('status')} | Turn Count: {cr.get('turn_count')}")
+                print(f"[+] Celesto Cloud Dashboard (app.celesto.ai): {len(cloud_runs)} run(s) logged")
+                for cr in cloud_runs[:3]:
+                    print(f"    - Run ID: {cr.get('run_id')} | Status: {cr.get('status')} | Turn: {cr.get('turn_count')}")
         except Exception as e:
             print(f"[*] Celesto Cloud Query: {e}")
     else:
@@ -82,6 +96,7 @@ def main():
     # --------------------------------------------------------------------------
     section_header("10-Step Bisection Pipeline inside Celesto MicroVM", 2)
     print("[*] Target Sandbox: sbx-liveagent01")
+    print("[*] Execution Mode: Celesto Cloud MicroVM (Auto-fallback to local isolated sandbox when Trial 2 VM/hr limit is active)")
     print("[*] Execution Target: celesto_sandbox (Zero host pollution)")
     print("[*] Hybrid Router: Groq for tool execution, Gemini 3.8 Flash for failure reasoning")
     print("-" * 78)
