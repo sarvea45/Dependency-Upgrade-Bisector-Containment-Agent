@@ -3,6 +3,12 @@ import os
 import logging
 from typing import Dict, Any, Optional
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 logger = logging.getLogger("hybrid_model_router")
 
 
@@ -104,52 +110,98 @@ class HybridModelRouter:
                 import time
                 import httpx
                 start_time = time.time()
-                url = f"{client.base_url}/chat/completions"
-                headers = {
-                    "Authorization": f"Bearer {client.api_key}",
-                    "Content-Type": "application/json"
-                }
-                if client.provider == "gemini":
-                    headers["x-goog-api-key"] = client.api_key
-
-                messages = [
-                    {"role": "system", "content": "You are an autonomous AI systems engineer running inside a Celesto sandbox."}
-                ]
-                if stack_trace:
-                    messages.append({
-                        "role": "user",
-                        "content": f"Large Pytest Stack Trace Analysis:\n```\n{stack_trace}\n```\nAnalyze root cause and identify rollback target."
-                    })
-                messages.append({"role": "user", "content": prompt})
-
-                models_to_try = [client.model]
-                if client.provider == "gemini" and client.model not in ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"]:
-                    models_to_try.extend(["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"])
 
                 with httpx.Client(timeout=30.0) as http_client:
                     last_err = None
-                    for candidate_model in models_to_try:
-                        payload = {
-                            "model": candidate_model,
-                            "messages": messages,
-                            "temperature": 0.1 if is_mid_task_failure else 0.0
+
+                    # 1. Native Gemini Provider Execution
+                    if client.provider == "gemini":
+                        gemini_models_to_try = [client.model]
+                        for fallback_m in ["gemini-3.8-flash", "gemini-2.5-pro", "gemini-2.0-flash"]:
+                            if fallback_m not in gemini_models_to_try:
+                                gemini_models_to_try.append(fallback_m)
+
+                        full_gemini_prompt = (
+                            f"Large Pytest Stack Trace Analysis:\n```\n{stack_trace}\n```\nAnalyze root cause, determine if environment is corrupted, and recommend rollback target (e.g. snap-06).\n\n{prompt}"
+                            if stack_trace else prompt
+                        )
+
+                        for candidate_model in gemini_models_to_try:
+                            m_slug = candidate_model.split("/")[-1]
+                            native_url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_slug}:generateContent?key={client.api_key}"
+                            gemini_payload = {
+                                "contents": [
+                                    {"role": "user", "parts": [{"text": full_gemini_prompt}]}
+                                ],
+                                "generationConfig": {
+                                    "temperature": 0.1 if is_mid_task_failure else 0.0
+                                }
+                            }
+                            resp = http_client.post(native_url, json=gemini_payload)
+                            if resp.status_code == 200:
+                                elapsed_ms = int((time.time() - start_time) * 1000)
+                                data = resp.json()
+                                candidates = data.get("candidates", [])
+                                if candidates and "content" in candidates[0] and "parts" in candidates[0]["content"]:
+                                    content = candidates[0]["content"]["parts"][0].get("text", "")
+                                    routing_decision["output"] = content
+                                    routing_decision["status"] = "success"
+                                    routing_decision["live_execution"] = True
+                                    routing_decision["latency_ms"] = elapsed_ms
+                                    if candidate_model != client.model:
+                                        routing_decision["actual_model"] = candidate_model
+                                    return routing_decision
+                            else:
+                                last_err = f"HTTP {resp.status_code}: {resp.text}"
+                                if resp.status_code == 404:
+                                    continue
+                                break
+
+                    # 2. OpenAI-Compatible Provider Execution (Groq / Default)
+                    else:
+                        url = f"{client.base_url}/chat/completions"
+                        headers = {
+                            "Authorization": f"Bearer {client.api_key}",
+                            "Content-Type": "application/json"
                         }
-                        resp = http_client.post(url, json=payload, headers=headers)
-                        if resp.status_code == 200:
-                            elapsed_ms = int((time.time() - start_time) * 1000)
-                            content = resp.json()["choices"][0]["message"]["content"]
-                            routing_decision["output"] = content
-                            routing_decision["status"] = "success"
-                            routing_decision["live_execution"] = True
-                            routing_decision["latency_ms"] = elapsed_ms
-                            if candidate_model != client.model:
-                                routing_decision["actual_model"] = candidate_model
-                            return routing_decision
-                        else:
-                            last_err = f"HTTP {resp.status_code}: {resp.text}"
-                            if resp.status_code == 404 and len(models_to_try) > 1:
-                                continue
-                            break
+                        messages = [
+                            {"role": "system", "content": "You are an autonomous AI systems engineer running inside a Celesto sandbox."}
+                        ]
+                        if stack_trace:
+                            messages.append({
+                                "role": "user",
+                                "content": f"Large Pytest Stack Trace Analysis:\n```\n{stack_trace}\n```\nAnalyze root cause and identify rollback target."
+                            })
+                        messages.append({"role": "user", "content": prompt})
+
+                        groq_models_to_try = [client.model]
+                        for fallback_m in ["openai/gpt-oss-20b", "qwen/qwen3.8-27b", "llama-3.3-70b-versatile"]:
+                            if fallback_m not in groq_models_to_try:
+                                groq_models_to_try.append(fallback_m)
+
+                        for candidate_model in groq_models_to_try:
+                            payload = {
+                                "model": candidate_model,
+                                "messages": messages,
+                                "temperature": 0.1 if is_mid_task_failure else 0.0
+                            }
+                            resp = http_client.post(url, json=payload, headers=headers)
+                            if resp.status_code == 200:
+                                elapsed_ms = int((time.time() - start_time) * 1000)
+                                content = resp.json()["choices"][0]["message"]["content"]
+                                routing_decision["output"] = content
+                                routing_decision["status"] = "success"
+                                routing_decision["live_execution"] = True
+                                routing_decision["latency_ms"] = elapsed_ms
+                                if candidate_model != client.model:
+                                    routing_decision["actual_model"] = candidate_model
+                                return routing_decision
+                            else:
+                                last_err = f"HTTP {resp.status_code}: {resp.text}"
+                                if resp.status_code == 404:
+                                    continue
+                                break
+
                     if last_err:
                         logger.warning(f"Live model call to {client.provider} returned {last_err}")
                         routing_decision["live_error"] = last_err

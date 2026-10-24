@@ -1,6 +1,12 @@
 """Environment and runtime settings configuration."""
 import os
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 CELESTO_PROVIDER = os.getenv("CELESTO_PROVIDER", "cloud")
 CELESTO_API_KEY = os.getenv("CELESTO_API_KEY", "replace-me")
 CELESTO_BACKEND = os.getenv("CELESTO_BACKEND", "firecracker")

@@ -14,6 +14,12 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(REPO_ROOT, ".env"))
+except ImportError:
+    pass
+
 from app.llm_router import HybridModelRouter, LLMClientConfig
 from code.agent.runner import AgentWorkflowRunner
 

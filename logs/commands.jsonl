@@ -93,3 +93,11 @@
 {"ts": "2026-10-24T02:51:57.579156+00:00", "sandbox_name": "sbx-liveverify01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
 {"ts": "2026-10-24T02:51:57.579156+00:00", "sandbox_name": "sbx-liveverify01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
 {"ts": "2026-10-24T02:51:57.580161+00:00", "sandbox_name": "sbx-liveverify01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:56:26.387610+00:00", "sandbox_name": "sbx-liveverify01", "command": "echo 'SECRET_CANARY_TOKEN_9981' > /run/secrets/canary.txt", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:56:27.061664+00:00", "sandbox_name": "sbx-liveverify01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:56:56.654645+00:00", "sandbox_name": "sbx-liveverify01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:56:57.230733+00:00", "sandbox_name": "sbx-liveverify01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:06:25.874607+00:00", "sandbox_name": "sbx-liveverify01", "command": "echo 'SECRET_CANARY_TOKEN_9981' > /run/secrets/canary.txt", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:06:26.701696+00:00", "sandbox_name": "sbx-liveverify01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:06:58.925637+00:00", "sandbox_name": "sbx-liveverify01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T03:07:00.214950+00:00", "sandbox_name": "sbx-liveverify01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
