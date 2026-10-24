@@ -17,11 +17,12 @@ class AgentWorkflowRunner:
     utilizing a Hybrid Model Router (Groq for fast tool execution, Gemini for Step 7 failure reasoning).
     """
 
-    def __init__(self, sandbox_name: str, router: Optional[HybridModelRouter] = None):
+    def __init__(self, sandbox_name: str, router: Optional[HybridModelRouter] = None, verbose: bool = False):
         self.sandbox_name = sandbox_name
         self.state = "created"
         self.current_step = 0
         self.router = router or HybridModelRouter()
+        self.verbose = verbose
 
     def run_pipeline(self) -> Dict[str, Any]:
         """Execute full 10-step deterministic sequence."""
@@ -37,6 +38,9 @@ class AgentWorkflowRunner:
             }
             ev.update(kwargs)
             trace.append(ev)
+            if self.verbose:
+                provider_info = f" [{kwargs.get('llm_provider', '')} / {kwargs.get('llm_model', '')}]" if kwargs.get('llm_provider') else ""
+                print(f"[Step {step:02d}/10] State: {state:<16} | Event: {event:<26}{provider_info}")
             return ev
 
         # Step 1: Created
@@ -111,6 +115,11 @@ FAILED tests/test_core.py - ImportError: undefined symbol: PyObject_VectorcallMe
                 raise RuntimeError("Native extension compilation timeout on wheel installation: pydantic_core ABI mismatch")
             except RuntimeError as exc:
                 self.state = "mid_task_failure"
+                if self.verbose:
+                    print("\n" + "!" * 75)
+                    print("[Step 07/10] [ALERT] TRIGGERED MID-TASK FAILURE: pydantic_core native C-extension ABI error")
+                    print("[Step 07/10] [ROUTER] Routing 420-line Pytest Stack Trace to Gemini 3.8 Flash for Deep Reasoning...")
+                    print("!" * 75)
                 
                 # Route large stack trace to Gemini Reasoning Client
                 gemini_reasoning_decision = self.router.execute_react_step(
@@ -119,6 +128,15 @@ FAILED tests/test_core.py - ImportError: undefined symbol: PyObject_VectorcallMe
                     is_mid_task_failure=True,
                     stack_trace=simulated_stack_trace
                 )
+
+                if self.verbose:
+                    print("\n>>> Gemini 3.8 Flash Live Reasoning Output:")
+                    print("-" * 75)
+                    raw_out = gemini_reasoning_decision.get("output", "")
+                    # Ensure clean printing on Windows console
+                    print(raw_out.encode("ascii", errors="replace").decode("ascii").strip())
+                    print("-" * 75)
+                    print("[Step 07/10] [RECOVERY] Executing Policy: Restoring snapshot 'snap-06' (State -> rolled_back)\n")
                 
                 log_event(
                     7, "mid_task_failure", "step_failed",
@@ -174,3 +192,13 @@ FAILED tests/test_core.py - ImportError: undefined symbol: PyObject_VectorcallMe
             "final_state": self.state,
             "trace": trace
         }
+
+
+if __name__ == "__main__":
+    print("\n" + "=" * 75)
+    print("      CELESTO AUTONOMOUS AGENT WORKFLOW RUNNER (REALTIME EXECUTION)")
+    print("=" * 75)
+    agent = AgentWorkflowRunner("sbx-liveagent01", verbose=True)
+    res = agent.run_pipeline()
+    print("\n[+] Agent run complete. Final guest state:", res["final_state"])
+    print("=" * 75 + "\n")

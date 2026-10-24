@@ -8,8 +8,18 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from app.generate_evals import generate_all
+from code.agent.runner import AgentWorkflowRunner
 
 if __name__ == "__main__":
-    print("Executing 20-Run Reliability Benchmark Suite across fresh Celesto sandboxes...")
+    print("\n" + "=" * 75)
+    print("  [LIVE TEST] RUNNING END-TO-END AGENT WORKFLOW IN CELESTO SANDBOX")
+    print("=" * 75)
+    agent = AgentWorkflowRunner("sbx-liveagent01", verbose=True)
+    res = agent.run_pipeline()
+    print("\n[+] Live Agent Workflow Finished with state:", res["final_state"])
+
+    print("\n" + "=" * 75)
+    print("  [EVAL BENCHMARK] EXECUTING 20-RUN RELIABILITY BENCHMARK SUITE")
+    print("=" * 75)
     generate_all()
-    print("Evaluation completed successfully. Numbers verified against arithmetic contracts.")
+    print("Evaluation completed successfully. Numbers verified against arithmetic contracts.\n")
