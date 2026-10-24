@@ -36,7 +36,7 @@ services:
       LLM_API_KEY: replace-me
       LLM_MODEL: llama-3.3-70b-versatile
       GEMINI_API_KEY: replace-me
-      GEMINI_MODEL: gemini-2.5-pro
+      GEMINI_MODEL: gemini-3.8-flash
     depends_on:
       ledger:
         condition: service_healthy

@@ -45,11 +45,13 @@ class HybridModelRouter:
         )
 
         # 2. Reasoning Client (Gemini / Large context stack trace analysis)
+        raw_gemini_model = gemini_model or os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+        cleaned_gemini_model = raw_gemini_model.strip().lower().replace(" ", "-") if raw_gemini_model else "gemini-3.8-flash"
         self.gemini_client = LLMClientConfig(
             provider="gemini",
             base_url=gemini_base_url or os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai"),
             api_key=gemini_api_key or os.getenv("GEMINI_API_KEY", "replace-me"),
-            model=gemini_model or os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
+            model=cleaned_gemini_model
         )
 
     def route(self, step: int, is_mid_task_failure: bool = False) -> LLMClientConfig:
@@ -99,12 +101,17 @@ class HybridModelRouter:
         # If live keys are present, execute via HTTP client
         if client.is_live:
             try:
+                import time
                 import httpx
+                start_time = time.time()
                 url = f"{client.base_url}/chat/completions"
                 headers = {
                     "Authorization": f"Bearer {client.api_key}",
                     "Content-Type": "application/json"
                 }
+                if client.provider == "gemini":
+                    headers["x-goog-api-key"] = client.api_key
+
                 messages = [
                     {"role": "system", "content": "You are an autonomous AI systems engineer running inside a Celesto sandbox."}
                 ]
@@ -115,20 +122,40 @@ class HybridModelRouter:
                     })
                 messages.append({"role": "user", "content": prompt})
 
-                payload = {
-                    "model": client.model,
-                    "messages": messages,
-                    "temperature": 0.1 if is_mid_task_failure else 0.0
-                }
+                models_to_try = [client.model]
+                if client.provider == "gemini" and client.model not in ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"]:
+                    models_to_try.extend(["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"])
+
                 with httpx.Client(timeout=30.0) as http_client:
-                    resp = http_client.post(url, json=payload, headers=headers)
-                    if resp.status_code == 200:
-                        content = resp.json()["choices"][0]["message"]["content"]
-                        routing_decision["output"] = content
-                        routing_decision["status"] = "success"
-                        return routing_decision
+                    last_err = None
+                    for candidate_model in models_to_try:
+                        payload = {
+                            "model": candidate_model,
+                            "messages": messages,
+                            "temperature": 0.1 if is_mid_task_failure else 0.0
+                        }
+                        resp = http_client.post(url, json=payload, headers=headers)
+                        if resp.status_code == 200:
+                            elapsed_ms = int((time.time() - start_time) * 1000)
+                            content = resp.json()["choices"][0]["message"]["content"]
+                            routing_decision["output"] = content
+                            routing_decision["status"] = "success"
+                            routing_decision["live_execution"] = True
+                            routing_decision["latency_ms"] = elapsed_ms
+                            if candidate_model != client.model:
+                                routing_decision["actual_model"] = candidate_model
+                            return routing_decision
+                        else:
+                            last_err = f"HTTP {resp.status_code}: {resp.text}"
+                            if resp.status_code == 404 and len(models_to_try) > 1:
+                                continue
+                            break
+                    if last_err:
+                        logger.warning(f"Live model call to {client.provider} returned {last_err}")
+                        routing_decision["live_error"] = last_err
             except Exception as e:
                 logger.error(f"Live model call to {client.provider} failed: {e}. Falling back to deterministic reasoning.")
+                routing_decision["live_error"] = str(e)
 
         # Deterministic offline reasoning (eval / test mode)
         if is_mid_task_failure or step == 7:

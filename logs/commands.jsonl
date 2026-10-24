@@ -73,3 +73,23 @@
 {"ts": "2026-10-23T05:58:33.254413+00:00", "sandbox_name": "sbx-hybridtest01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
 {"ts": "2026-10-23T05:58:35.509910+00:00", "sandbox_name": "sbx-hybridtest01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
 {"ts": "2026-10-23T05:58:36.309169+00:00", "sandbox_name": "sbx-hybridtest01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:45:52.416044+00:00", "sandbox_name": "sbx-hybridtest01", "command": "echo 'SECRET_CANARY_TOKEN_9981' > /run/secrets/canary.txt", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:45:53.023594+00:00", "sandbox_name": "sbx-hybridtest01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:45:54.763223+00:00", "sandbox_name": "sbx-hybridtest01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:45:55.330935+00:00", "sandbox_name": "sbx-hybridtest01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:46:45.048059+00:00", "sandbox_name": "sbx-liveverify01", "command": "echo 'SECRET_CANARY_TOKEN_9981' > /run/secrets/canary.txt", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:46:45.048059+00:00", "sandbox_name": "sbx-liveverify01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:46:45.048059+00:00", "sandbox_name": "sbx-liveverify01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:46:45.048059+00:00", "sandbox_name": "sbx-liveverify01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:47:32.593349+00:00", "sandbox_name": "sbx-hybridtest01", "command": "echo 'SECRET_CANARY_TOKEN_9981' > /run/secrets/canary.txt", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:47:33.474194+00:00", "sandbox_name": "sbx-hybridtest01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:47:37.232941+00:00", "sandbox_name": "sbx-hybridtest01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:47:38.005217+00:00", "sandbox_name": "sbx-hybridtest01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:51:44.021604+00:00", "sandbox_name": "sbx-hybridtest01", "command": "echo 'SECRET_CANARY_TOKEN_9981' > /run/secrets/canary.txt", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:51:44.597776+00:00", "sandbox_name": "sbx-hybridtest01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:51:46.595306+00:00", "sandbox_name": "sbx-hybridtest01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:51:47.175662+00:00", "sandbox_name": "sbx-hybridtest01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:51:57.579156+00:00", "sandbox_name": "sbx-liveverify01", "command": "echo 'SECRET_CANARY_TOKEN_9981' > /run/secrets/canary.txt", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:51:57.579156+00:00", "sandbox_name": "sbx-liveverify01", "command": "git clone https://github.com/example/microservice.git", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:51:57.579156+00:00", "sandbox_name": "sbx-liveverify01", "command": "pip install pydantic==2.7.4", "decision": "allow", "execution_target": "celesto_sandbox"}
+{"ts": "2026-10-24T02:51:57.580161+00:00", "sandbox_name": "sbx-liveverify01", "command": "pytest tests/test_core.py", "decision": "allow", "execution_target": "celesto_sandbox"}
